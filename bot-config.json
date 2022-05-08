@@ -1,0 +1,11 @@
+{
+  "identity": {
+    "clientId": "aewaut157t6adc9dopb2sprxeg1pnv",
+    "callBackUrl": "http://localhost:4827",
+    "scopes": "chat:read chat:edit whispers:edit",
+    "username": "purplproto"
+  },
+  "channels": [
+    "purplproto"
+  ]
+}
