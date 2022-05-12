@@ -4,3 +4,8 @@ export type ParsedAuthResponse = {
   state: string;
   token_type: string;
 };
+
+export type MessageDataItem = {
+  value: string;
+  used: boolean;
+};
