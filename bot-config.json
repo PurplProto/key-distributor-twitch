@@ -7,5 +7,9 @@
   },
   "channels": [
     "purplproto"
-  ]
+  ],
+  "message": {
+    "userNamesFile": "test-files\\users.txt",
+    "steamKeysFile": "test-files\\keys.txt"
+  }
 }
