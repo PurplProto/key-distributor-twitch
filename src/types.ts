@@ -1,3 +1,7 @@
+import config from '../bot-config.json';
+
+export type Config = typeof config;
+
 export type ParsedAuthResponse = {
   access_token: string;
   scope: string;
