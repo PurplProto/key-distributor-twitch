@@ -1,25 +1,30 @@
-import { readFileSync } from 'fs';
 import { ChatUserstate, Client, client, Options } from 'tmi.js';
 import { BotAuth } from './bot-auth';
-import { Config, MessageDataItem } from './types';
+import { MessageQueue } from './message';
+import { Config } from './types';
 
 export class App {
+  private message: MessageQueue;
+
   private bot: Client;
   private bearerToken: string;
-  private users: MessageDataItem[];
-  private keys: MessageDataItem[];
 
   constructor(
     private config: Config,
     private botAuth: BotAuth,
-  ) { }
+  ) {
+    this.message = new MessageQueue(
+      config,
+      this.bot,
+    );
+  }
 
   public async init() {
     console.info('Validating config');
     this.validateConfig();
 
     console.info('Loading users and keys files');
-    await this.loadFilesForMessages();
+    await this.message.loadFilesForMessages();
 
     console.info('Authenticating the bot');
     this.bearerToken = await this.botAuth.getBearerToken();
@@ -110,59 +115,23 @@ export class App {
 
   // Called every time a message comes in
   private onMessageHandler(channel: string, context: ChatUserstate, msg: string, self: boolean) {
-    if (self) { return; } // Only accept messages from self
+    if (self) { return; } // Don't accept messages from self
 
     console.info(`[${context.username}] ${msg}`);
 
-    // Do stuff with the chat message
-    console.log('Sending pong');
-    this.bot.say(channel, 'pong!');
+    // Trigger sending the messages
+    if (msg.toLowerCase().startsWith('!spgsend')) {
+      this.message.sendWhispers();
+    }
+
+    // Status report
+    if (msg.toLowerCase().startsWith('!spgstatus')) {
+      this.message.statusReport();
+    }
   }
 
   // Called every time the bot connects to Twitch chat
   private onConnectedHandler(addr: string, port: number) {
     console.log(`Twitch bot successfully connected to ${addr}:${port}`);
-  }
-
-  private async loadFilesForMessages(): Promise<void> {
-    const parseFile = (filePath: string): MessageDataItem[] => {
-      try {
-        const file = readFileSync(filePath, { encoding: 'utf-8', flag: 'r' });
-        return file.split('\n').map<MessageDataItem>(v => ({
-          value: v.startsWith('#') ? v.substring(1) : v,
-          used: v.startsWith('#'),
-        })).filter(v => !!v.value);
-      } catch (error: unknown) {
-        const err = error as Error & { code: string; };
-
-        console.error(`Failed to parse the given file: "${filePath}"`);
-
-        if (err.code && err.code === 'ENOENT') {
-          console.error('The file does not appear to exist!');
-        } else {
-          console.error(
-            'The following error message might give you a clue about what went wrong: ',
-            JSON.stringify(err, null, 2)
-          );
-        }
-
-        process.exit(1);
-      }
-    };
-
-    this.users = parseFile(this.config.message.userNamesFile);
-    this.keys = parseFile(this.config.message.steamKeysFile);
-
-    console.info('Here are the first 5 usernames we parsed: ', this.users.slice(0, 5));
-    console.info('Here are the first 5 keys we parsed: ', this.keys.slice(0, 5));
-    console.info('If these don\'t look correct, please press CTRL + C immediately');
-
-    return new Promise<void>((resolve, _) => {
-      console.info('Bot continues to launch in 5 seconds');
-
-      setTimeout(() => {
-        resolve();
-      }, 5000);
-    });
   }
 }

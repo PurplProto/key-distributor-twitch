@@ -10,6 +10,7 @@
   ],
   "message": {
     "userNamesFile": "test-files\\users.txt",
-    "steamKeysFile": "test-files\\keys.txt"
+    "steamKeysFile": "test-files\\keys.txt",
+    "template": "Thanks for entering StOoPiD_U's promo for SPG! <STEAM_KEY>"
   }
 }
